@@ -1,5 +1,5 @@
 import unittest
-from parse_log import convert_hour, total_time
+from parse_log import total_time, convert_hour
 
 
 class test_parse(unittest.TestCase):
