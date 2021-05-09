@@ -1,3 +1,4 @@
+import sys
 import datetime as dt
 import logging
 
@@ -6,20 +7,16 @@ logging.basicConfig(filename='log.log',
 
 
 def open_file(file):
-    """This function open a file and add all lines
-    in list.
+    """This function open a file and return all line
 
-    file : is the file to select for open and add
+    file : is the file to select for open and get
     all lines.
     """
+
     with open(file, 'r', encoding='utf-8')as f:
         logging.warning(f'open the file {file}')
-        res = []
-        logging.debug('add line by line on list')
-        for line in f:
-            if line.strip():
-                res.append(line.rstrip())
-        return res
+        f = f.readlines()
+        return f
 
 
 def convert_hour(start, end):
@@ -37,29 +34,59 @@ def convert_hour(start, end):
     return time_delta.seconds//60
 
 
-def parse_log():
-    """
-    This function take the list of the lines of the file
-    split for recover all hour of this list.
-    Convert all delta hour with the function convert_hour.
-    Return all category with delta time and the % of the
-    minutes
-    """
-    time_list = open_file('planning.log')
-    for rows in time_list:
-        timer = rows.split()[0]
-        logging.info(f'This is all time of file {timer}')
-        start = timer.split('-')[0]
-        logging.info(f'take start hour {start}')
-        end = timer.split('-')[1]
-        logging.info(f'take end hour {end}')
-        time_delta = convert_hour(start, end)
-        logging.info(f'this is the delta of all hours {time_delta} minutes')
-        category = ' '.join(rows.split()[1:])
-        logging.info('recover all categories')
-        res = f'{category:30}{time_delta} minutes  {int(time_delta/970*100)} %'
-        logging.info(f'This is your result: {res}')
-        print(res)
+def file_to_dict():
+    f = open_file(sys.argv[1])
+    res = {}
+    for line in f:
+        if not line.isspace():
+            line = line.split()
+            logging.info(f'line : {line}')
+            category = line[1]
+            logging.info(f'category : {category}')
+            hour = line[0].split('-')
+            logging.info(f'hour : {hour}')
+            minutes = convert_hour(hour[0], hour[1])
+            logging.info(f'delta minutes : {minutes}')
+            if category not in res:
+                logging.debug('add line by line on dict')
+                res[category] = minutes
+                logging.info(f"key = {category} value = {minutes}")
+            else:
+                res[category] += minutes
+                logging.info("if key existe add values")
+    logging.info(f"this is ur dict {dict(sorted(res.items()))}")
+    return dict(sorted(res.items()))
 
 
-print(parse_log())
+def total_time(values):
+    """ This function sum all values in
+    dict or a list.
+
+    values = all values in dict or  list
+    """
+    total = 0
+    for time in values:
+        try:
+            total += time
+        except TypeError:
+            return('Incorrect value')
+    return total
+
+
+def parse_dict():
+    """ This function parse a dictionnary
+    """
+    dict_items = file_to_dict()
+    space = " "
+    total = total_time(dict_items.values())
+    logging.debug(f"total of all values in dict {total}")
+    for category, minutes in dict_items.items():
+        pourcent = int(minutes/total*100)
+        print(f'{category:19} {minutes:5} minutes{space*5}{pourcent:3} %')
+
+
+if __name__ == '__main__':
+    try:
+        parse_dict()
+    except IndexError:
+        print("No file selected please add a path file in your 1st arg")

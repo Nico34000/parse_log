@@ -1,5 +1,5 @@
 import unittest
-from parse_log import convert_hour
+from parse_log import convert_hour, total_time
 
 
 class test_parse(unittest.TestCase):
@@ -10,10 +10,15 @@ class test_parse(unittest.TestCase):
         self.assertEqual(convert_hour("08:00", "8:30"), 30)
         self.assertNotEqual(convert_hour("12:00", "14:00"), 300)
 
-    def test_parse_log(self):
-        pass
-    #     self.assertEqual(parse_log("09:20-11:00 Introduction"), "Introduction              100 minutes   10%")
-    #     self.assertEqual(parse_log("09:30-10:30 Lists and Tuples"), "Lists and Tuples           60 minutes    6%")
+    def test_total_time_(self):
+        self.assertEqual(total_time({1, 2, 3}), 6)
+        self.assertEqual(total_time({100, 42, 3}), 145)
+        self.assertEqual(total_time([1]), 1)
+        self.assertNotEqual(total_time([4, 13, 4]), 43)
+        self.assertEqual(total_time(["ffkfk"]), "Incorrect value")
+        self.assertEqual(total_time([""]), "Incorrect value")
+        self.assertEqual(total_time([]), 0)
+        self.assertEqual(total_time({"ffkfk"}), "Incorrect value")
 
 
 if __name__ == '__main__':
