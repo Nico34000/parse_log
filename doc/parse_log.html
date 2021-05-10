@@ -30,9 +30,6 @@
 import datetime as dt
 import logging
 
-logging.basicConfig(filename=&#39;log.log&#39;,
-                    level=logging.DEBUG)
-
 
 def open_file(file):
     &#34;&#34;&#34;This function open a file and return all line
@@ -42,7 +39,7 @@ def open_file(file):
     &#34;&#34;&#34;
 
     with open(file, &#39;r&#39;, encoding=&#39;utf-8&#39;)as f:
-        logging.warning(f&#39;open the file {file}&#39;)
+        logging.info(f&#39;open the file {file}&#39;)
         f = f.readlines()
         return f
 
@@ -62,16 +59,28 @@ def convert_hour(start, end):
     return time_delta.seconds//60
 
 
-def file_to_dict():
-    f = open_file(sys.argv[1])
+def file_to_dict(file_lines):
+    &#34;&#34;&#34; This function parse a list of lines
+    and return a dictionnary with the format:
+    imagine you have a list like 
+    [&#34;09:20-11:00 Introduction&#34;,
+                    &#34;11:00-11:15 Exercises&#34;,
+                    &#34;11:15-11:35 Break&#34;]
+    the function return a dict :
+    {&#34;Break&#34; : 20, &#34;Exercises&#34; : 15}
+
+    file_lines : is the list of lines from file 
+    or other.
+    &#34;&#34;&#34;
+
     res = {}
-    for line in f:
+    for line in file_lines:
         if not line.isspace():
-            line = line.split()
+            lines = line.split()
             logging.info(f&#39;line : {line}&#39;)
-            category = line[1]
+            category = line[11:].strip()
             logging.info(f&#39;category : {category}&#39;)
-            hour = line[0].split(&#39;-&#39;)
+            hour = lines[0].split(&#39;-&#39;)
             logging.info(f&#39;hour : {hour}&#39;)
             minutes = convert_hour(hour[0], hour[1])
             logging.info(f&#39;delta minutes : {minutes}&#39;)
@@ -101,23 +110,45 @@ def total_time(values):
     return total
 
 
-def parse_dict():
-    &#34;&#34;&#34; This function parse a dictionnary
+def parse_dict(dictionnary, output_file):
+    &#34;&#34;&#34; This function parse a dictionnary and 
+    add the result in a file.
+    exemple you have a dictionnary like :
+    {&#34;Break&#34; : 20, &#34;Exercises&#34; : 15}
+    the function return and add fles: two lines :
+    Break                  20 minutes        57%
+    Exercises              15 minutes        43%
+
+    dictionnary : is the dictionnary want to parse
+    output_file: is file what to write
     &#34;&#34;&#34;
-    dict_items = file_to_dict()
     space = &#34; &#34;
-    total = total_time(dict_items.values())
+    total = total_time(dictionnary.values())
     logging.debug(f&#34;total of all values in dict {total}&#34;)
-    for category, minutes in dict_items.items():
-        pourcent = int(minutes/total*100)
-        print(f&#39;{category:19} {minutes:5} minutes{space*5}{pourcent:3} %&#39;)
+    for category, minutes in dictionnary.items():
+        with open(output_file, &#34;w&#34;, encoding=&#39;utf8&#39;) as output:
+            pourcent = int(minutes/total*100)
+            res = (f&#39;{category:21} {minutes:3} minutes{space*5}{pourcent:4}%&#39;)
+            print(res)
+            output.write(f&#39;{res}\n&#39;)
+    print(f&#34;Your result has been add in file {output.name}&#34;)
+    logging.info(f&#34;Your result has been add in file {output.name}&#34;)
+    return res
+
+
+def main():
+    try:
+        file_lines = open_file(sys.argv[1])
+        my_dict = file_to_dict(file_lines)
+        parse_dict(my_dict, &#34;output.txt&#34;)
+    except IndexError:
+        print(&#34;No file selected please add a path file in your 1st arg&#34;)
 
 
 if __name__ == &#39;__main__&#39;:
-    try:
-        parse_dict()
-    except IndexError:
-        print(&#34;No file selected please add a path file in your 1st arg&#34;)</code></pre>
+    logging.basicConfig(filename=&#39;log.log&#39;,
+                        level=logging.DEBUG)
+    main()</code></pre>
 </details>
 </section>
 <section>
@@ -156,24 +187,44 @@ end : is the end of the hour</p></div>
 </details>
 </dd>
 <dt id="parse_log.file_to_dict"><code class="name flex">
-<span>def <span class="ident">file_to_dict</span></span>(<span>)</span>
+<span>def <span class="ident">file_to_dict</span></span>(<span>file_lines)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p 15 20_="20," : _Break_="&quot;Break&quot;" _Exercises_="&quot;Exercises&quot;">This function parse a list of lines
+and return a dictionnary with the format:
+imagine you have a list like
+["09:20-11:00 Introduction",
+"11:00-11:15 Exercises",
+"11:15-11:35 Break"]
+the function return a dict :</p>
+<p>file_lines : is the list of lines from file
+or other.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def file_to_dict():
-    f = open_file(sys.argv[1])
+<pre><code class="python">def file_to_dict(file_lines):
+    &#34;&#34;&#34; This function parse a list of lines
+    and return a dictionnary with the format:
+    imagine you have a list like 
+    [&#34;09:20-11:00 Introduction&#34;,
+                    &#34;11:00-11:15 Exercises&#34;,
+                    &#34;11:15-11:35 Break&#34;]
+    the function return a dict :
+    {&#34;Break&#34; : 20, &#34;Exercises&#34; : 15}
+
+    file_lines : is the list of lines from file 
+    or other.
+    &#34;&#34;&#34;
+
     res = {}
-    for line in f:
+    for line in file_lines:
         if not line.isspace():
-            line = line.split()
+            lines = line.split()
             logging.info(f&#39;line : {line}&#39;)
-            category = line[1]
+            category = line[11:].strip()
             logging.info(f&#39;category : {category}&#39;)
-            hour = line[0].split(&#39;-&#39;)
+            hour = lines[0].split(&#39;-&#39;)
             logging.info(f&#39;hour : {hour}&#39;)
             minutes = convert_hour(hour[0], hour[1])
             logging.info(f&#39;delta minutes : {minutes}&#39;)
@@ -186,6 +237,24 @@ end : is the end of the hour</p></div>
                 logging.info(&#34;if key existe add values&#34;)
     logging.info(f&#34;this is ur dict {dict(sorted(res.items()))}&#34;)
     return dict(sorted(res.items()))</code></pre>
+</details>
+</dd>
+<dt id="parse_log.main"><code class="name flex">
+<span>def <span class="ident">main</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def main():
+    try:
+        file_lines = open_file(sys.argv[1])
+        my_dict = file_to_dict(file_lines)
+        parse_dict(my_dict, &#34;output.txt&#34;)
+    except IndexError:
+        print(&#34;No file selected please add a path file in your 1st arg&#34;)</code></pre>
 </details>
 </dd>
 <dt id="parse_log.open_file"><code class="name flex">
@@ -207,30 +276,56 @@ all lines.</p></div>
     &#34;&#34;&#34;
 
     with open(file, &#39;r&#39;, encoding=&#39;utf-8&#39;)as f:
-        logging.warning(f&#39;open the file {file}&#39;)
+        logging.info(f&#39;open the file {file}&#39;)
         f = f.readlines()
         return f</code></pre>
 </details>
 </dd>
 <dt id="parse_log.parse_dict"><code class="name flex">
-<span>def <span class="ident">parse_dict</span></span>(<span>)</span>
+<span>def <span class="ident">parse_dict</span></span>(<span>dictionnary, output_file)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>This function parse a dictionnary</p></div>
+<div class="desc"><p>This function parse a dictionnary and
+add the result in a file.
+exemple you have a dictionnary like :
+{"Break" : 20, "Exercises" : 15}
+the function return and add fles: two lines :
+Break
+20 minutes
+57%
+Exercises
+15 minutes
+43%</p>
+<p>dictionnary : is the dictionnary want to parse
+output_file: is file what to write</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def parse_dict():
-    &#34;&#34;&#34; This function parse a dictionnary
+<pre><code class="python">def parse_dict(dictionnary, output_file):
+    &#34;&#34;&#34; This function parse a dictionnary and 
+    add the result in a file.
+    exemple you have a dictionnary like :
+    {&#34;Break&#34; : 20, &#34;Exercises&#34; : 15}
+    the function return and add fles: two lines :
+    Break                  20 minutes        57%
+    Exercises              15 minutes        43%
+
+    dictionnary : is the dictionnary want to parse
+    output_file: is file what to write
     &#34;&#34;&#34;
-    dict_items = file_to_dict()
     space = &#34; &#34;
-    total = total_time(dict_items.values())
+    total = total_time(dictionnary.values())
     logging.debug(f&#34;total of all values in dict {total}&#34;)
-    for category, minutes in dict_items.items():
-        pourcent = int(minutes/total*100)
-        print(f&#39;{category:19} {minutes:5} minutes{space*5}{pourcent:3} %&#39;)</code></pre>
+    for category, minutes in dictionnary.items():
+        with open(output_file, &#34;w&#34;, encoding=&#39;utf8&#39;) as output:
+            pourcent = int(minutes/total*100)
+            res = (f&#39;{category:21} {minutes:3} minutes{space*5}{pourcent:4}%&#39;)
+            print(res)
+            output.write(f&#39;{res}\n&#39;)
+    print(f&#34;Your result has been add in file {output.name}&#34;)
+    logging.info(f&#34;Your result has been add in file {output.name}&#34;)
+    return res</code></pre>
 </details>
 </dd>
 <dt id="parse_log.total_time"><code class="name flex">
@@ -272,9 +367,10 @@ list</p></div>
 </div>
 <ul id="index">
 <li><h3><a href="#header-functions">Functions</a></h3>
-<ul class="">
+<ul class="two-column">
 <li><code><a title="parse_log.convert_hour" href="#parse_log.convert_hour">convert_hour</a></code></li>
 <li><code><a title="parse_log.file_to_dict" href="#parse_log.file_to_dict">file_to_dict</a></code></li>
+<li><code><a title="parse_log.main" href="#parse_log.main">main</a></code></li>
 <li><code><a title="parse_log.open_file" href="#parse_log.open_file">open_file</a></code></li>
 <li><code><a title="parse_log.parse_dict" href="#parse_log.parse_dict">parse_dict</a></code></li>
 <li><code><a title="parse_log.total_time" href="#parse_log.total_time">total_time</a></code></li>

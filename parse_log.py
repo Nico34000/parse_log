@@ -32,6 +32,19 @@ def convert_hour(start, end):
 
 
 def file_to_dict(file_lines):
+    """ This function parse a list of lines
+    and return a dictionnary with the format:
+    imagine you have a list like 
+    ["09:20-11:00 Introduction",
+                    "11:00-11:15 Exercises",
+                    "11:15-11:35 Break"]
+    the function return a dict :
+    {"Break" : 20, "Exercises" : 15}
+
+    file_lines : is the list of lines from file 
+    or other.
+    """
+
     res = {}
     for line in file_lines:
         if not line.isspace():
@@ -70,13 +83,22 @@ def total_time(values):
 
 
 def parse_dict(dictionnary, output_file):
-    """ This function parse a dictionnary
+    """ This function parse a dictionnary and 
+    add the result in a file.
+    exemple you have a dictionnary like :
+    {"Break" : 20, "Exercises" : 15}
+    the function return and add fles: two lines :
+    Break                  20 minutes        57%
+    Exercises              15 minutes        43%
+
+    dictionnary : is the dictionnary want to parse
+    output_file: is file what to write
     """
     space = " "
     total = total_time(dictionnary.values())
     logging.debug(f"total of all values in dict {total}")
     for category, minutes in dictionnary.items():
-        with open(output_file,"w",encoding='utf8') as output:
+        with open(output_file, "w", encoding='utf8') as output:
             pourcent = int(minutes/total*100)
             res = (f'{category:21} {minutes:3} minutes{space*5}{pourcent:4}%')
             print(res)
@@ -90,7 +112,7 @@ def main():
     try:
         file_lines = open_file(sys.argv[1])
         my_dict = file_to_dict(file_lines)
-        parse_dict(my_dict,"output.txt")
+        parse_dict(my_dict, "output.txt")
     except IndexError:
         print("No file selected please add a path file in your 1st arg")
 
@@ -99,5 +121,3 @@ if __name__ == '__main__':
     logging.basicConfig(filename='log.log',
                         level=logging.DEBUG)
     main()
-    
-
