@@ -2,9 +2,6 @@ import sys
 import datetime as dt
 import logging
 
-logging.basicConfig(filename='log.log',
-                    level=logging.DEBUG)
-
 
 def open_file(file):
     """This function open a file and return all line
@@ -14,7 +11,7 @@ def open_file(file):
     """
 
     with open(file, 'r', encoding='utf-8')as f:
-        logging.warning(f'open the file {file}')
+        logging.info(f'open the file {file}')
         f = f.readlines()
         return f
 
@@ -34,16 +31,15 @@ def convert_hour(start, end):
     return time_delta.seconds//60
 
 
-def file_to_dict():
-    f = open_file(sys.argv[1])
+def file_to_dict(file_lines):
     res = {}
-    for line in f:
+    for line in file_lines:
         if not line.isspace():
-            line = line.split()
+            lines = line.split()
             logging.info(f'line : {line}')
-            category = line[1]
+            category = line[11:].strip()
             logging.info(f'category : {category}')
-            hour = line[0].split('-')
+            hour = lines[0].split('-')
             logging.info(f'hour : {hour}')
             minutes = convert_hour(hour[0], hour[1])
             logging.info(f'delta minutes : {minutes}')
@@ -73,20 +69,35 @@ def total_time(values):
     return total
 
 
-def parse_dict():
+def parse_dict(dictionnary, output_file):
     """ This function parse a dictionnary
     """
-    dict_items = file_to_dict()
     space = " "
-    total = total_time(dict_items.values())
+    total = total_time(dictionnary.values())
     logging.debug(f"total of all values in dict {total}")
-    for category, minutes in dict_items.items():
-        pourcent = int(minutes/total*100)
-        print(f'{category:19} {minutes:5} minutes{space*5}{pourcent:3} %')
+    for category, minutes in dictionnary.items():
+        with open(output_file,"w",encoding='utf8') as output:
+            pourcent = int(minutes/total*100)
+            res = (f'{category:21} {minutes:3} minutes{space*5}{pourcent:4}%')
+            print(res)
+            output.write(f'{res}\n')
+    print(f"Your result has been add in file {output.name}")
+    logging.info(f"Your result has been add in file {output.name}")
+    return res
+
+
+def main():
+    try:
+        file_lines = open_file(sys.argv[1])
+        my_dict = file_to_dict(file_lines)
+        parse_dict(my_dict,"output.txt")
+    except IndexError:
+        print("No file selected please add a path file in your 1st arg")
 
 
 if __name__ == '__main__':
-    try:
-        parse_dict()
-    except IndexError:
-        print("No file selected please add a path file in your 1st arg")
+    logging.basicConfig(filename='log.log',
+                        level=logging.DEBUG)
+    main()
+    
+
